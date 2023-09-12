@@ -1,0 +1,5 @@
+version: '3'
+services:
+  goti:
+    build: .
+    image: alexhowarth/gotibot:latest
