@@ -1,10 +1,13 @@
 import aiogram
+import logging
 
 from AiogramStorages.storages import PGStorage
 from library.openai           import SupportAI
 
 import library.config as env
 import library.database as db
+
+is_engine_loaded = True
 
 bot = aiogram.Bot(
     token      = env.BOT_TOKEN, 
@@ -29,4 +32,11 @@ storage = PGStorage(
 )
 
 dp     = aiogram.Dispatcher(bot, storage=storage)
-engine = SupportAI(env.OPENAI_KEY, 'openai/knowledge').engine
+engine = None
+
+try:
+    engine = SupportAI(env.OPENAI_KEY, 'openai/knowledge').engine
+except:
+    is_engine_loaded = False
+    
+    logging.error('OpenAI не был подгружен!')

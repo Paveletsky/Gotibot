@@ -1,6 +1,6 @@
 import logging
 
-from app.bot                import (dp, bot, database, engine)
+from app.bot                import (dp, bot, database, engine, is_engine_loaded)
 from library.translations   import (l)
 from app.boards.common      import (Application)  
 from aiogram                import (dispatcher, types)
@@ -14,6 +14,10 @@ async def BUTTON_q_start(cb: types.CallbackQuery, state: dispatcher.FSMContext):
         clientLanguage = await database.GetData(
             cb.from_user.id, 'language')
         
+        if not is_engine_loaded:
+            await cb.message.answer(l('operatorBusy', clientLanguage)) 
+            return
+
         await cb.message.edit_text(text=l('support_welcome', clientLanguage))
         await cb.message.edit_reply_markup(reply_markup=Application(clientLanguage).request_question(1))
     except:
@@ -26,7 +30,11 @@ async def BUTTON_q_pre(cb: types.CallbackQuery, state: dispatcher.FSMContext):
     try:
         clientLanguage = await database.GetData(
             cb.from_user.id, 'language')
-
+        
+        if not is_engine_loaded:
+            await cb.message.answer(l('operatorBusy', clientLanguage))
+            return
+        
         await cb.message.answer(l('startDialogue', clientLanguage))
         await state.set_state('STATE_typing_question')
 
@@ -65,6 +73,10 @@ async def HOOK_question(message: types.Message, state: dispatcher.FSMContext):
                 for i in range(randint(11, 19)):
                     await sleep(5)
                     await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
+
+                if not is_engine_loaded:
+                    await message.answer(l('operatorBusy', clientLanguage))
+                    return
 
                 await message.reply(
                     engine.query(message.text),
